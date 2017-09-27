@@ -1,0 +1,219 @@
+//Start with...
+#define F_CPU 20000000
+#include <util/delay.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <avr/io.h>
+#include <avr/interrupt.h>
+
+
+
+//Anama Led PD1
+int main(void){
+DDRD |=(1 << DDD1);
+    while(1)  {
+      PORTD |=(1 << PORTD1);
+    }}
+//Anavosvisomo Led PD1
+int main(void){
+DDRD |=(1 << DDD1);
+    while(1)    { 
+PORTD |=(1 << PORTD1); _delay_ms(500);
+PORTD &=~(1<< PORTD1); _delay_ms(500);
+}}
+//Diaforetiko anavosfisimo me patima button
+int main(void){
+DDRB |= (1 << PINB0);
+DDRB &=~(1 << PINB1);
+PORTB |= (1 << PINB1);
+ while(1)    {
+PORTB ^=1 << PINB0; _delay_ms(100);
+if (bit_is_clear(PINB,1))
+{_delay_ms(10);} 
+else
+{_delay_ms(500);}}}
+
+
+
+//Anama Led me button
+int main(void){
+DDRB |= (1 << PINB0);
+DDRB &=~(1 << PINB1);
+PORTB |= (1 << PINB1);
+while(1){
+if (bit_is_clear(PINB,1))
+{ PORTB|=(1 << PORTB0);}
+else
+{PORTB &=~(1<< PORTB0);}}}
+
+//Anama Led button _OR
+int main(void){
+DDRB |= (1 << PINB0);
+DDRB &=~(1 << PINB1);
+PORTB |= (1 << PINB1);
+DDRB &=~(1 << PINB2);
+PORTB |= (1 << PINB2);
+while(1){
+if ((bit_is_clear(PINB,1)) && (bit_is_clear(PINB,2)) )
+{ PORTB|=(1 << PORTB0);}
+else
+{PORTB &=~(1<< PORTB0);}}}
+
+//Anama Led button _AND
+if ((bit_is_clear(PINB,1))|| (bit_is_clear(PINB,2)) )
+
+//Anavosvisimo Led me button_1
+int main(void){
+DDRB |= (1 << PINB0);
+DDRB &=~(1 << PINB1);
+PORTB |= (1 << PINB1);
+DDRB &=~(1 << PINB2);
+PORTB |= (1 << PINB2);
+
+while(1){
+if (bit_is_clear(PINB,1))
+{ PORTB|=(1 << PORTB0);}
+else if (bit_is_clear(PINB,2))
+{PORTB &=~(1<< PORTB0);}}}
+
+//Anavosvisimo Led me button_2
+int main(void){
+DDRB |= (1 << PINB0);
+DDRB &=~(1 << PINB1);
+PORTB |= (1 << PINB1);
+int a=0;
+while(1)
+{_delay_ms(100);
+if (bit_is_clear(PINB,1) && (a==0))
+{ PORTB|=(1 << PORTB0);a=1;}
+else if (bit_is_clear(PINB,1) && (a==1))
+{ PORTB &=~(1<< PORTB0);a=0;}
+else if (a==1)
+{ PORTB|=(1 << PORTB0);}
+else 
+{PORTB &=~(1<< PORTB0);}}}
+
+
+
+
+
+
+
+//ADC_1
+int adc_value;      
+ //Variable used to store the value read from the ADC converter
+int main(void){
+DDRB |=(1<<PB5);    ///PB5/digital 13 is an output
+ADCSRA |=((1<<ADPS2)|(1<<ADPS1)|(1<<ADPS0));    //Prescaler at 128 so we have an 125Khz clock source
+ADMUX |=(1<<REFS0);
+ADMUX &=~(1<<REFS1);                //Avcc(+5v) as voltage reference
+ADCSRB &=~((1<<ADTS2)|(1<<ADTS1)|(1<<ADTS0));    //ADC in free-running mode
+ADCSRA |=(1<<ADATE);                //Signal source, in this case is the free-running
+ADCSRA |=(1<<ADEN);                //Power up the ADC
+ADCSRA |=(1<<ADSC);                //Start converting
+while(1){
+adc_value=ADCW;    //Read the ADC value, really that's just it
+if(adc_value > 512)
+{PORTB |=(1<<PB5);}
+else 
+{PORTB &=~(1<<PB5);}
+}}
+
+//ADC_2
+#define LTHRES 512
+#define RTHRES 512
+void adc_init() // initialize adc
+{
+ADMUx=(1<<REFS0);// AREF=AVcc
+ADCSRA=(1<<ADEN)|(1<<ADPS2)|(1<<ADPS1)|(1<<ADPS0); // ADC Enable and prescaler of 128 // 16000000/128=125000
+}
+uint16_t adc_read(uint8_t ch) // read adc value
+{ // select the corresponding channel 0~7 // ANDing with '7' will always keep the value // of 'ch' between 0 and 7
+ch &=0b00000111; // AND operation with 7
+ADMUx=(ADMUX & 0xF8)|ch;     // clears the bottom 3 bits before ORing
+ADCSRA |=(1<<ADSC); // start single conversion // write '1' to ADSC
+while(ADCSRA & (1<<ADSC)); // wait for conversion to complete // ADSC becomes '0' again // till then, run loop continuously
+return (ADC);
+}
+
+int main(){
+
+DDRB |=(1<<PB5);    ///PB5/digital 13 is an output
+uint16_t adc_result0, adc_result1;
+DDRC=0x01;           // to connect led to PC0
+adc_init(); // initialize adc and lcd
+while(1){
+adc_result0=adc_read(0);      // read adc value at PA0
+adc_result1=adc_read(1);      // read adc value at PA1
+if (adc_result0 > LTHRES || adc_result1 > RTHRES) // condition for led to glow
+{PORTB |=(1<<PB5);}
+else
+{PORTB &=~(1<<PB5);}
+}}
+
+//ADC_3 (me 4 an. & eRLed!)
+
+void adc_init() // initialize adc
+{
+ADMUx=(1<<REFS0); // AREF=AVcc
+ADCSRA=(1<<ADEN)|(1<<ADPS2)|(1<<ADPS1)|(1<<ADPS0);
+// ADC Enable and prescaler of 128 // 16000000/128=125000
+}
+uint16_t adc_read(uint8_t ch) // read adc value
+{ // select the corresponding channel 0~7 // ANDing with '7' will always keep the value // of 'ch' between 0 and 7
+ch &=0b00000111; // AND operation with 7
+ADMUx=(ADMUX & 0xF8)|ch;     // clears the bottom 3 bits before ORing
+ADCSRA |=(1<<ADSC); // start single conversion // write '1' to ADSC
+while(ADCSRA & (1<<ADSC)); // wait for conversion to complete // ADSC becomes '0' again // till then, run loop continuously
+return (ADC);
+}
+
+int main(){
+DDRB |=(1<<PB1);    ///PB5/digital 13 is an output
+DDRB |=(1<<PB2); 
+DDRB |=(1<<PB0); 
+DDRD |=(1<<PD7); 
+DDRD |=(1<<PD6); 
+uint16_t adc_result0, adc_result1 ,adc_result2 ,adc_result3;
+DDRC=0x01;           // to connect led to PC0
+adc_init(); // initialize adc and lcd
+while(1){
+adc_result0=adc_read(0);
+adc_result1=adc_read(1);
+adc_result2=adc_read(2);
+adc_result3=adc_read(4);
+if (adc_result0 > 312){
+PORTB  |=(1<<PB1);
+PORTB  &=~(1<<PB2);
+PORTB  &=~(1<<PB0);
+PORTD  &=~(1<<PD7);
+PORTD  &=~(1<<PD6);
+}
+else if  (adc_result1 > 312){
+PORTB  &=~(1<<PB1);
+PORTB  |=(1<<PB2);
+PORTB  &=~(1<<PB0);
+PORTD  &=~(1<<PD7);
+PORTD  &=~(1<<PD6);
+}
+else if  (adc_result2 > 312){
+PORTB  &=~(1<<PB1);
+PORTB  &=~(1<<PB2);
+PORTB  |=(1<<PB0);
+PORTD  &=~(1<<PD7);
+PORTD  &=~(1<<PD6);
+}
+else if  (adc_result3 > 312){
+PORTB  &=~(1<<PB1);
+PORTB  &=~(1<<PB2);
+PORTB  &=~(1<<PB0);
+PORTD  |=(1<<PD7);
+PORTD  &=~(1<<PD6);
+}
+else {
+PORTB  &=~(1<<PB1);
+PORTB  &=~(1<<PB2);
+PORTB  &=~(1<<PB0);
+PORTD  &=~(1<<PD7);
+PORTD  |=(1<<PD6);
+}}}
